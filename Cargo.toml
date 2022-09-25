@@ -1,0 +1,14 @@
+[package]
+name = "challenges-25"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+base64 = "*"
+aes = "*"
+ecb = "*"
+[dependencies.ctr]
+git = "https://github.com/RustCrypto/block-modes.git"
+tag = "ctr-v0.9.1"
