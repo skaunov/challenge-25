@@ -9,6 +9,7 @@ edition = "2021"
 base64 = "*"
 aes = "*"
 ecb = "*"
+openssl = "*"
 [dependencies.ctr]
 git = "https://github.com/RustCrypto/block-modes.git"
 tag = "ctr-v0.9.1"
