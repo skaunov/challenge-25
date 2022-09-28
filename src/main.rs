@@ -18,20 +18,20 @@ impl Chal25 {
         key: &[u8; 16], 
         nonce: &[u8; 16], 
         offset: usize, 
-        newtext: String
+        newtext: Vec<u8>
     ) -> Vec<u8> {
         let mut cipher = Aes128Ctr32LE::new(key.into(), nonce.into());
 
         cipher.seek(offset);
         
-        let mut buf_edit = newtext.into_bytes();
+        let mut buf_edit = newtext.clone()/* .into_bytes() */;
         cipher.apply_keystream(buf_edit.as_mut_slice());
         let mut result: Vec<u8> = ciphertext.clone();
-        for i in offset..=offset + buf_edit.len() {result[i] = buf_edit[offset + i];}
+        for i in offset..offset + buf_edit.len() {result[i] = buf_edit[offset + i];}
         result
     }
 
-    fn edit_api(&self, ciphertext: &Vec<u8>, offset: usize, newtext: str) -> Vec<u8> {
+    fn edit_api(&self, ciphertext: &Vec<u8>, offset: usize, newtext: Vec<u8>) -> Vec<u8> {
         Chal25::edit(ciphertext, &self.key, &self.nonce, offset, newtext)
     }
 }
@@ -102,8 +102,8 @@ fn main() {
 
     let victim = Chal25{key, nonce: iv};
 
-    let solut = victim.edit_api(&ct, 0, ct.into());
-    let solut_forPrint = String::from_utf8(solut);
+    let solut = victim.edit_api(&ct, 0, ct.clone());
+    let solut_forPrint = String::from_utf8(solut).unwrap();
     println!("{solut_forPrint}");
 }
 
