@@ -6,9 +6,34 @@ use aes::Aes128;
 use aes::cipher::{BlockDecryptMut, generic_array::GenericArray};
 use ctr::cipher::block_padding::Pkcs7;
 
-// edit(ciphertext, key, offset, newtext)
-fn edit(ciphertext: &Vec<u8>, key: [u8; _], offset, newtext) {
-    
+/* TODO try to do with 192-bit; current CT will need padding
+type Aes192Ctr32LE = ctr::Ctr32LE<aes::Aes192>; */
+type Aes128Ctr32BE = ctr::Ctr32BE<aes::Aes128>;
+
+struct Chal25 {key: [u8; 16], nonce: [u8; 16]}
+impl Chal25 {
+    // edit(ciphertext, key, offset, newtext)
+    fn edit(
+        ciphertext: &Vec<u8>, 
+        key: &[u8; 16], 
+        nonce: &[u8; 16], 
+        offset: usize, 
+        newtext: String
+    ) -> Vec<u8> {
+        let mut cipher = Aes128Ctr32BE::new(key.into(), nonce.into());
+
+        cipher.seek(offset);
+        
+        let mut buf_edit = newtext.into_bytes();
+        cipher.apply_keystream(buf_edit.as_mut_slice());
+        let mut result: Vec<u8> = ciphertext.clone();
+        for i in offset..=offset + buf_edit.len() {result[i] = buf_edit[offset + i];}
+        result
+    }
+
+    fn edit_api(&self, ciphertext: &Vec<u8>, offset: usize, newtext: String) -> Vec<u8> {
+        Chal25::edit(ciphertext, &self.key, &self.nonce, offset, newtext)
+    }
 }
 
 fn main() {
@@ -52,9 +77,6 @@ fn main() {
     openssl::rand::rand_bytes(&mut key).unwrap();
     openssl::rand::rand_bytes(&mut iv).unwrap();
 
-    /* TODO try to do with 192-bit; current CT will need padding
-    type Aes192Ctr32LE = ctr::Ctr32LE<aes::Aes192>; */
-    type Aes128Ctr32BE = ctr::Ctr32BE<aes::Aes128>;
     let mut cipher = Aes128Ctr32BE::new(&key.into(), &iv.into());
     // let mut buf:Vec<u8> = blocks.iter().flatten().map(|&x| x).collect()/* .to_vec() */;
     let mut buf:Vec<u8> = blocks.iter().flatten().copied().collect();
